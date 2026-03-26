@@ -14,14 +14,16 @@
 
         <div class="left">
             <div class="logo">
-                <img src="Trivit Logo Light V1.png" alt="Trivit Logo">
+                <a href="./" aria-label="Go to Trivit home">
+                    <img src="Trivit Logo Light V1.png" alt="Trivit Logo">
+                </a>
             </div>
             <nav class="tabs">
                 <ul>
-                    <li class="tab active" data-tab="home">HOME</li>
-                    <li class="tab" data-tab="os">OS</li>
-                    <li class="tab" data-tab="browser">BROWSER</li>
-                    <li class="tab" data-tab="games">GAMES</li>
+                    <li class="tab active" data-tab="home"><a class="tab-link" href="./">HOME</a></li>
+                    <li class="tab" data-tab="os"><a class="tab-link" href="os/">OS</a></li>
+                    <li class="tab" data-tab="browser"><a class="tab-link" href="browser/">BROWSER</a></li>
+                    <li class="tab" data-tab="games"><a class="tab-link" href="games/">GAMES</a></li>
                 </ul>
             </nav>
         </div>
@@ -33,16 +35,20 @@
         </div>
     </header>
 
-    <main>
-        <!-- Tab content will go here -->
+    <main class="page-main">
+        <section class="page-placeholder" aria-labelledby="page-title">
+            <p class="page-kicker">Placeholder</p>
+            <h1 id="page-title">Home</h1>
+            <p class="page-path">/</p>
+        </section>
     </main>
 
     <footer>
         <nav class="footer-tabs" aria-label="Footer navigation">
             <ul>
-                <li><a href="#help">HELP</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#about">ABOUT US</a></li>
+                <li><a href="help/">HELP</a></li>
+                <li><a href="faq/">FAQ</a></li>
+                <li><a href="about/">ABOUT US</a></li>
             </ul>
         </nav>
     </footer>
