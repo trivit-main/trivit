@@ -1,0 +1,138 @@
+/* Page-wide defaults: removes browser spacing, sets the base font, and applies the gray background. */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #cbcbcb;
+}
+
+/* Top navigation bar: arranges its children horizontally and keeps absolute-positioned effects anchored here. */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #cbcbcb;
+    padding: 10px 20px;
+    position: relative;
+}
+
+/* Left section of the header: keeps the logo and tabs aligned in one row. */
+.left {
+    display: flex;
+    align-items: center;
+}
+
+/* Controls the logo size and spacing from the navigation tabs. */
+.logo img {
+    height: 50px;
+    margin-right: 20px;
+}
+
+/* Tab container: used as the positioning context for the tab highlight elements. */
+.tabs {
+    position: relative;
+}
+
+/* Removes default list styling and displays the tabs side by side. */
+.tabs ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Base style for each tab: spacing, text color, click cursor, and stacking above the moving background. */
+.tabs li {
+    color: #494949;
+    padding: 8px 16px;
+    cursor: pointer;
+    position: relative;
+    background-color: transparent;
+    transition: color 0.18s;
+    z-index: 1; /* keep text above selector */
+}
+
+/* Hover feedback is handled by the separate `.tab-hover` element instead of a per-tab pseudo-element. */
+
+/* Active tab text changes color so it stays visible on the dark selector background. */
+.tabs li.active {
+    color: #cbcbcb;
+}
+
+/* Animated dark background that slides behind the currently selected tab. */
+.tab-selector {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: calc(100% - 30px);
+    background-color: #494949;
+    border-radius: 12px;
+    transition: transform 0.28s cubic-bezier(.2,.9,.2,1), width 0.28s cubic-bezier(.2,.9,.2,1);
+    z-index: 0; /* behind text but above .tab-hover */
+}
+
+/* Center area of the header: grows to fill available space and centers its contents. */
+.center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+/* Position the search wrapper absolutely in the header center. */
+.search-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+/* Search input: border-only appearance, centered placeholder, transparent background. */
+.search-bar input {
+    padding: 8px 12px;
+    border: 4px solid #494949;
+    background: transparent;
+    width: 300px;
+    margin: 0;
+    border-radius: 12px;
+    outline: none;
+    box-shadow: none;
+    color: inherit;
+    text-align: center;
+    text-transform: uppercase;
+    height: 20px;
+    line-height: 30px;
+    pointer-events: auto;
+}
+
+/* Placeholder text styling (centered by text-align above). */
+.search-bar input::placeholder {
+    color: #494949;
+    opacity: 1;
+}
+
+/* When the search bar is selected (the tab selector moves over it),
+   make the input text and placeholder light for readability. */
+.search-bar.active input {
+    color: #cbcbcb;
+}
+.search-bar.active input::placeholder {
+    color: rgba(203,203,203,0.85);
+}
+
+/* Hover outline shown at header level: matches the selector shape, but only draws a border. */
+.tab-hover {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    height: calc(100% - 28px);
+    border: 4px solid #494949;
+    border-radius: 12px;
+    z-index: 0; /* behind text but above .tab-selector */
+}
+
+/* Main page content gets inner spacing so it does not touch the viewport edges. */
+main {
+    padding: 20px;
+}
