@@ -1,25 +1,58 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     const header = document.querySelector('header');
-    // select all .tab elements across the header (left and right)
     const items = Array.from(document.querySelectorAll('header .tab'));
     const selector = document.querySelector('.tab-selector');
+    const searchBar = document.querySelector('.search-bar');
+    const searchInput = searchBar ? searchBar.querySelector('input') : null;
+
+    function getSearchTargetWidth() {
+        return window.innerWidth <= 820 ? Math.min(286, window.innerWidth * 0.7) : 286;
+    }
 
     function updateSelector(activeEl) {
-        const activeRect = activeEl.getBoundingClientRect();
+        if (!activeEl || !selector || !header) return;
         const headerRect = header.getBoundingClientRect();
+
+        if (activeEl === searchBar && searchInput) {
+            const activeRect = activeEl.getBoundingClientRect();
+            const targetWidth = getSearchTargetWidth();
+            const left = activeRect.right - headerRect.left - targetWidth;
+            selector.style.transform = `translateX(${left}px)`;
+            selector.style.width = `${targetWidth}px`;
+            return;
+        }
+
+        const activeRect = activeEl.getBoundingClientRect();
         const left = activeRect.left - headerRect.left;
         selector.style.transform = `translateX(${left}px)`;
         selector.style.width = `${activeRect.width}px`;
     }
 
+    function setActive(activeEl) {
+        items.forEach(item => {
+            if (item !== activeEl) {
+                item.classList.remove('active');
+            }
+        });
+
+        activeEl.classList.add('active');
+
+        if (activeEl === searchBar) {
+            updateSelector(activeEl);
+            return;
+        }
+
+        if (searchBar) {
+            searchBar.classList.remove('active');
+        }
+
+        updateSelector(activeEl);
+    }
+
     items.forEach(el => {
         el.addEventListener('click', function() {
-            // remove active from all
-            items.forEach(i => i.classList.remove('active'));
-            // add to clicked
-            this.classList.add('active');
-            updateSelector(this);
+            setActive(this);
         });
     });
 
@@ -59,34 +92,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // hide hover when leaving header entirely
     header.addEventListener('mouseleave', hideHover);
 
-    // Initialize selector position on the currently active element
     const initialActive = document.querySelector('header .tab.active');
     if (initialActive && selector) {
-        // set initial size/position
-        // position after a tick to ensure styles/layout applied
         requestAnimationFrame(() => {
             selector.style.width = `${initialActive.getBoundingClientRect().width}px`;
             updateSelector(initialActive);
         });
     }
 
-    // Make the search input behave like a selectable tab when focused
-    const searchBar = document.querySelector('.search-bar');
-    const searchInput = searchBar ? searchBar.querySelector('input') : null;
     if (searchInput) {
+        searchBar.addEventListener('pointerdown', () => {
+            setActive(searchBar);
+        });
+
         searchInput.addEventListener('focus', () => {
-            items.forEach(i => i.classList.remove('active'));
-            searchBar.classList.add('active');
-            updateSelector(searchBar);
+            setActive(searchBar);
         });
-        searchInput.addEventListener('blur', () => {
-            // If another tab is active, restore selector to it.
-            const otherActive = document.querySelector('header .tab.active');
-            if (otherActive && otherActive !== searchBar) updateSelector(otherActive);
-        });
+
     }
 
-    // Recalculate on resize to keep selector aligned
     window.addEventListener('resize', () => {
         const active = document.querySelector('header .tab.active');
         if (active) updateSelector(active);
