@@ -85,8 +85,17 @@ header {
     height: calc(100% - 28px);
     background-color: #494949;
     border-radius: 12px;
-    transition: transform 0.28s cubic-bezier(.2,.9,.2,1), width 0.28s cubic-bezier(.2,.9,.2,1);
+    opacity: 0;
+    pointer-events: none;
     z-index: 0; /* behind text but above .tab-hover */
+}
+
+.tab-selector.is-ready {
+    transition: transform 0.28s cubic-bezier(.2,.9,.2,1), width 0.28s cubic-bezier(.2,.9,.2,1), opacity 0.18s ease;
+}
+
+.tab-selector.is-visible {
+    opacity: 1;
 }
 
 /* Right section of the header: keeps the search aligned to the far edge. */
