@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (rightSection && !rightSection.querySelector('.auth-trigger')) {
             rightSection.insertAdjacentHTML('beforeend', `
                 <button class="auth-trigger tab" type="button" aria-controls="auth-panel" aria-expanded="false" aria-haspopup="dialog">
-                    ACCEDI
+                    LOG IN
                 </button>
             `);
         }
@@ -18,10 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="auth-overlay" aria-hidden="true"></div>
                 <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
                     <button class="auth-close" type="button" aria-label="Close access panel">X</button>
-                    <p class="auth-kicker">Firebase Access</p>
                     <h2 id="auth-title">Accedi a Trivit</h2>
-                    <p class="auth-copy">Inserisci email e password per accedere al tuo account.</p>
-                    <form class="auth-form" id="auth-login-form">
+                    <p class="auth-copy">Usa email e password per entrare o creare il tuo account.</p>
+                    <form class="auth-form" id="auth-login-form" data-auth-mode="login">
                         <label class="auth-field" for="auth-email">
                             <span>Email</span>
                             <input id="auth-email" name="email" type="email" autocomplete="email" required>
@@ -30,8 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>Password</span>
                             <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
                         </label>
-                        <button class="auth-submit" type="submit">Accedi</button>
+                        <button class="auth-submit" type="submit">LOG IN</button>
                         <p class="auth-feedback" role="status" aria-live="polite"></p>
+                        <div class="auth-mode-switch">
+                            <span class="auth-mode-label">Non hai un account?</span>
+                            <button class="auth-mode-toggle" type="button">Registrati</button>
+                        </div>
                     </form>
                 </section>
             `);
@@ -66,11 +69,69 @@ document.addEventListener('DOMContentLoaded', function() {
     const authPanel = document.querySelector('.auth-panel');
     const authOverlay = document.querySelector('.auth-overlay');
     const authClose = document.querySelector('.auth-close');
+    const authForm = document.querySelector('#auth-login-form');
+    const authTitle = document.querySelector('#auth-title');
+    const authCopy = document.querySelector('.auth-copy');
+    const authSubmit = document.querySelector('.auth-submit');
+    const authModeLabel = document.querySelector('.auth-mode-label');
+    const authModeToggle = document.querySelector('.auth-mode-toggle');
     let navigationToken = 0;
     let lastHeaderSelection = document.querySelector('header .tab.active') || null;
 
+    const authModeConfig = {
+        login: {
+            title: 'Accedi a Trivit',
+            copy: 'Usa email e password per entrare nel tuo account.',
+            submit: 'LOG IN',
+            switchLabel: 'Non hai un account?',
+            switchAction: 'Registrati'
+        },
+        register: {
+            title: 'Registrati a Trivit',
+            copy: 'Crea il tuo account usando email e password.',
+            submit: 'REGISTRATI',
+            switchLabel: 'Hai gia un account?',
+            switchAction: 'Accedi'
+        }
+    };
+
     function getSearchTargetWidth() {
         return window.innerWidth <= 820 ? Math.min(286, window.innerWidth * 0.7) : 286;
+    }
+
+    function getCurrentAuthMode() {
+        return authForm?.dataset.authMode === 'register' ? 'register' : 'login';
+    }
+
+    function syncAuthModeUi(mode) {
+        if (!authForm) return;
+
+        const nextMode = mode === 'register' ? 'register' : 'login';
+        authForm.dataset.authMode = nextMode;
+
+        if (authPanel) {
+            authPanel.dataset.authMode = nextMode;
+        }
+
+        if (authTitle) {
+            authTitle.textContent = authModeConfig[nextMode].title;
+        }
+
+        if (authCopy) {
+            authCopy.textContent = authModeConfig[nextMode].copy;
+        }
+
+        if (authSubmit && !authSubmit.disabled) {
+            authSubmit.textContent = authModeConfig[nextMode].submit;
+        }
+
+        if (authModeLabel) {
+            authModeLabel.textContent = authModeConfig[nextMode].switchLabel;
+        }
+
+        if (authModeToggle && !authModeToggle.disabled) {
+            authModeToggle.textContent = authModeConfig[nextMode].switchAction;
+        }
     }
 
     function updateAuthPanelOffset() {
@@ -172,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         authOverlay.setAttribute('aria-hidden', 'false');
         authTrigger.setAttribute('aria-expanded', 'true');
         document.body.classList.add('auth-open');
+        syncAuthModeUi('login');
         document.dispatchEvent(new CustomEvent('trivit:auth-panel-open'));
     }
 
@@ -399,6 +461,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    if (authModeToggle) {
+        authModeToggle.addEventListener('click', () => {
+            const nextMode = getCurrentAuthMode() === 'login' ? 'register' : 'login';
+            syncAuthModeUi(nextMode);
+            document.dispatchEvent(new CustomEvent('trivit:auth-mode-change', {
+                detail: { mode: nextMode }
+            }));
+        });
+    }
+
     if (authClose) {
         authClose.addEventListener('click', () => {
             closeAuthPanel();
@@ -419,6 +491,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('trivit:auth-login-success', () => {
         closeAuthPanel();
+    });
+
+    document.addEventListener('trivit:auth-mode-change', event => {
+        syncAuthModeUi(event.detail?.mode);
     });
 
     document.addEventListener('trivit:request-auth-panel-open', () => {
@@ -445,6 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideSelector();
     }
 
+    syncAuthModeUi(getCurrentAuthMode());
     updateAuthPanelOffset();
 
     requestAnimationFrame(() => {
