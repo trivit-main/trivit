@@ -1,14 +1,81 @@
 document.addEventListener('DOMContentLoaded', function() {
     const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
+    if (!header) return;
+
+    function ensureAuthInterface() {
+        const rightSection = header.querySelector('.right');
+
+        if (rightSection && !rightSection.querySelector('.auth-trigger')) {
+            rightSection.insertAdjacentHTML('beforeend', `
+                <button class="auth-trigger tab" type="button" aria-controls="auth-panel" aria-expanded="false" aria-haspopup="dialog">
+                    ACCEDI
+                </button>
+            `);
+        }
+
+        if (!document.querySelector('.auth-overlay') || !document.querySelector('.auth-panel')) {
+            header.insertAdjacentHTML('afterend', `
+                <div class="auth-overlay" aria-hidden="true"></div>
+                <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
+                    <button class="auth-close" type="button" aria-label="Close access panel">X</button>
+                    <p class="auth-kicker">Firebase Access</p>
+                    <h2 id="auth-title">Accedi a Trivit</h2>
+                    <p class="auth-copy">Inserisci email e password per accedere al tuo account.</p>
+                    <form class="auth-form" id="auth-login-form">
+                        <label class="auth-field" for="auth-email">
+                            <span>Email</span>
+                            <input id="auth-email" name="email" type="email" autocomplete="email" required>
+                        </label>
+                        <label class="auth-field" for="auth-password">
+                            <span>Password</span>
+                            <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+                        </label>
+                        <button class="auth-submit" type="submit">Accedi</button>
+                        <p class="auth-feedback" role="status" aria-live="polite"></p>
+                    </form>
+                </section>
+            `);
+        }
+    }
+
+    function ensureAuthModule() {
+        const hasAuthModule = Array.from(document.querySelectorAll('script[type="module"][src]'))
+            .some(script => /(^|\/)auth\.js$/i.test(new URL(script.src, window.location.href).pathname));
+
+        if (hasAuthModule) {
+            return;
+        }
+
+        const currentScript = Array.from(document.querySelectorAll('script[src]'))
+            .find(script => /(^|\/)script\.js$/i.test(new URL(script.src, window.location.href).pathname));
+        const moduleScript = document.createElement('script');
+        moduleScript.type = 'module';
+        moduleScript.src = new URL('auth.js', currentScript ? currentScript.src : window.location.href).href;
+        moduleScript.dataset.trivitAuthModule = 'true';
+        document.body.appendChild(moduleScript);
+    }
+
+    ensureAuthInterface();
+    ensureAuthModule();
+
     const selector = document.querySelector('.tab-selector');
     const items = Array.from(document.querySelectorAll('header .tab'));
     const searchBar = document.querySelector('.search-bar');
     const searchInput = searchBar ? searchBar.querySelector('input') : null;
+    const authTrigger = document.querySelector('.auth-trigger');
+    const authPanel = document.querySelector('.auth-panel');
+    const authOverlay = document.querySelector('.auth-overlay');
+    const authClose = document.querySelector('.auth-close');
     let navigationToken = 0;
+    let lastHeaderSelection = document.querySelector('header .tab.active') || null;
 
     function getSearchTargetWidth() {
         return window.innerWidth <= 820 ? Math.min(286, window.innerWidth * 0.7) : 286;
+    }
+
+    function updateAuthPanelOffset() {
+        if (!header) return;
+        document.documentElement.style.setProperty('--auth-panel-top', `${header.offsetHeight + 18}px`);
     }
 
     function showSelector() {
@@ -58,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchBar.classList.remove('active');
         }
 
+        lastHeaderSelection = null;
         hideSelector();
     }
 
@@ -75,6 +143,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         activeEl.classList.add('active');
 
+        if (activeEl !== authTrigger) {
+            lastHeaderSelection = activeEl;
+        }
+
         if (activeEl === searchBar) {
             requestAnimationFrame(() => updateSelector(activeEl));
             return;
@@ -89,6 +161,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getCurrentActiveHeaderItem() {
         return document.querySelector('header .tab.active');
+    }
+
+    function openAuthPanel() {
+        if (!authPanel || !authOverlay || !authTrigger) return;
+
+        authPanel.classList.add('is-open');
+        authPanel.setAttribute('aria-hidden', 'false');
+        authOverlay.classList.add('is-open');
+        authOverlay.setAttribute('aria-hidden', 'false');
+        authTrigger.setAttribute('aria-expanded', 'true');
+        document.body.classList.add('auth-open');
+        document.dispatchEvent(new CustomEvent('trivit:auth-panel-open'));
+    }
+
+    function closeAuthPanel(options = {}) {
+        const { restoreSelection = true } = options;
+
+        if (!authPanel || !authOverlay || !authTrigger) return;
+
+        authPanel.classList.remove('is-open');
+        authPanel.setAttribute('aria-hidden', 'true');
+        authOverlay.classList.remove('is-open');
+        authOverlay.setAttribute('aria-hidden', 'true');
+        authTrigger.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('auth-open');
+        document.dispatchEvent(new CustomEvent('trivit:auth-panel-close'));
+
+        if (!restoreSelection) {
+            return;
+        }
+
+        if (lastHeaderSelection && document.contains(lastHeaderSelection)) {
+            setActive(lastHeaderSelection);
+            return;
+        }
+
+        clearHeaderState();
     }
 
     function syncLinkAttributes(currentLinks, nextLinks) {
@@ -246,6 +355,10 @@ document.addEventListener('DOMContentLoaded', function() {
             setActive(clickedTab);
         }
 
+        if (authPanel && authPanel.classList.contains('is-open')) {
+            closeAuthPanel({ restoreSelection: false });
+        }
+
         if (searchInput && document.activeElement === searchInput) {
             searchInput.blur();
         }
@@ -261,13 +374,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (searchInput) {
         searchBar.addEventListener('pointerdown', () => {
+            closeAuthPanel({ restoreSelection: false });
             setActive(searchBar);
         });
 
         searchInput.addEventListener('focus', () => {
+            closeAuthPanel({ restoreSelection: false });
             setActive(searchBar);
         });
     }
+
+    if (authTrigger) {
+        authTrigger.addEventListener('click', () => {
+            const isOpen = authPanel?.classList.contains('is-open');
+
+            if (isOpen) {
+                closeAuthPanel();
+                return;
+            }
+
+            setActive(authTrigger);
+            updateAuthPanelOffset();
+            openAuthPanel();
+        });
+    }
+
+    if (authClose) {
+        authClose.addEventListener('click', () => {
+            closeAuthPanel();
+        });
+    }
+
+    if (authOverlay) {
+        authOverlay.addEventListener('click', () => {
+            closeAuthPanel();
+        });
+    }
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && authPanel?.classList.contains('is-open')) {
+            closeAuthPanel();
+        }
+    });
+
+    document.addEventListener('trivit:auth-login-success', () => {
+        closeAuthPanel();
+    });
+
+    document.addEventListener('trivit:request-auth-panel-open', () => {
+        if (authPanel?.classList.contains('is-open')) {
+            return;
+        }
+
+        if (authTrigger) {
+            setActive(authTrigger);
+        }
+
+        updateAuthPanelOffset();
+        openAuthPanel();
+    });
+
+    document.addEventListener('trivit:request-auth-panel-close', () => {
+        closeAuthPanel();
+    });
 
     const initialActive = getCurrentActiveHeaderItem();
     if (initialActive) {
@@ -276,11 +445,14 @@ document.addEventListener('DOMContentLoaded', function() {
         hideSelector();
     }
 
+    updateAuthPanelOffset();
+
     requestAnimationFrame(() => {
         enableSelectorAnimation();
     });
 
     window.addEventListener('resize', () => {
+        updateAuthPanelOffset();
         const activeItem = getCurrentActiveHeaderItem();
 
         if (searchBar && searchBar.classList.contains('active')) {
