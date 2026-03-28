@@ -1,3 +1,7 @@
+:root {
+    --trivit-font-family: Arial, sans-serif;
+}
+
 /* Page-wide defaults: removes browser spacing, sets the base font, and applies the gray background. */
 body {
     margin: 0;
@@ -5,9 +9,30 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    font-family: Arial, sans-serif;
+    font-family: var(--trivit-font-family);
+    font-size: 16px;
     background-color: #cbcbcb;
     color: #494949;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+header,
+header *,
+.auth-panel,
+.auth-panel *,
+.account-panel,
+.account-panel *,
+footer,
+footer *,
+.page-placeholder,
+.page-placeholder * {
+    font-family: var(--trivit-font-family);
 }
 
 /* Top navigation bar: arranges its children horizontally and keeps absolute-positioned effects anchored here. */
@@ -68,6 +93,24 @@ header {
     padding: 8px 16px;
     color: inherit;
     text-decoration: none;
+}
+
+.tab-link,
+.search-bar input,
+.auth-trigger,
+.footer-tabs a,
+.auth-submit,
+.auth-mode-toggle,
+.account-menu-item {
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.tab-link,
+.search-bar input,
+.auth-trigger,
+.footer-tabs a {
+    letter-spacing: 0.08em;
 }
 
 .tabs li,
@@ -225,7 +268,8 @@ main {
     pointer-events: auto;
 }
 
-.auth-panel {
+.auth-panel,
+.account-panel {
     position: fixed;
     top: var(--auth-panel-top, 90px);
     right: 28px;
@@ -242,13 +286,15 @@ main {
     z-index: 11;
 }
 
-.auth-panel.is-open {
+.auth-panel.is-open,
+.account-panel.is-open {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
 }
 
-.auth-close {
+.auth-close,
+.account-close {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -274,13 +320,18 @@ main {
     opacity: 0.72;
 }
 
-.auth-panel h2 {
+.auth-panel h2,
+.account-panel h2,
+.page-placeholder h1 {
     margin: 0 0 10px;
+    font-family: inherit;
     font-size: clamp(1.8rem, 4vw, 2.3rem);
+    letter-spacing: 0.02em;
     line-height: 1.05;
 }
 
-.auth-copy {
+.auth-copy,
+.account-copy {
     margin: 0 0 22px;
     line-height: 1.5;
     opacity: 0.82;
@@ -372,23 +423,69 @@ main {
     cursor: wait;
 }
 
-.auth-feedback {
+.auth-feedback,
+.account-feedback {
     min-height: 1.4em;
     margin: 0;
     font-size: 0.92rem;
     line-height: 1.45;
 }
 
-.auth-feedback[data-state="error"] {
+.auth-feedback[data-state="error"],
+.account-feedback[data-state="error"] {
     color: #9b2c2c;
 }
 
-.auth-feedback[data-state="success"] {
+.auth-feedback[data-state="success"],
+.account-feedback[data-state="success"] {
     color: #21613f;
 }
 
-.auth-feedback[data-state="pending"] {
+.auth-feedback[data-state="pending"],
+.account-feedback[data-state="pending"] {
     opacity: 0.75;
+}
+
+.account-menu-list {
+    display: grid;
+    gap: 12px;
+}
+
+.account-menu-item {
+    min-height: 46px;
+    padding: 12px 16px;
+    border: 1px solid #494949;
+    border-radius: 14px;
+    background: #f1f1f1;
+    color: inherit;
+    font: inherit;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus-visible {
+    background: #494949;
+    color: #cbcbcb;
+}
+
+.account-menu-item:disabled {
+    opacity: 0.72;
+    cursor: wait;
+    transform: none;
+}
+
+.account-menu-logout {
+    background: #494949;
+    color: #cbcbcb;
+}
+
+.account-menu-logout:hover,
+.account-menu-logout:focus-visible {
+    opacity: 0.86;
 }
 
 body.auth-open {
@@ -446,8 +543,6 @@ footer {
     padding: 8px 12px;
     color: #494949;
     text-decoration: none;
-    font-size: 0.95rem;
-    letter-spacing: 0.04em;
     transition: opacity 0.18s ease;
 }
 
@@ -487,7 +582,8 @@ footer {
         width: min(220px, 70vw);
     }
 
-    .auth-panel {
+    .auth-panel,
+    .account-panel {
         left: 16px;
         right: 16px;
         width: auto;
