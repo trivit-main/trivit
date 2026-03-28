@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="auth-overlay" aria-hidden="true"></div>
                 <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
                     <button class="auth-close" type="button" aria-label="Close access panel">X</button>
-                    <h2 id="auth-title">Accedi a Trivit</h2>
-                    <p class="auth-copy">Usa email e password per entrare o creare il tuo account.</p>
+                    <h2 id="auth-title">Log In to Trivit</h2>
+                    <p class="auth-copy">Use email and password to log in or create your account.</p>
                     <form class="auth-form" id="auth-login-form" data-auth-mode="login">
                         <label class="auth-field" for="auth-email">
                             <span>Email</span>
@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="auth-submit" type="submit">LOG IN</button>
                         <p class="auth-feedback" role="status" aria-live="polite"></p>
                         <div class="auth-mode-switch">
-                            <span class="auth-mode-label">Non hai un account?</span>
-                            <button class="auth-mode-toggle" type="button">Registrati</button>
+                            <span class="auth-mode-label">Don't have an account?</span>
+                            <button class="auth-mode-toggle" type="button">Sign Up</button>
                         </div>
                     </form>
                 </section>
@@ -75,23 +75,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const authSubmit = document.querySelector('.auth-submit');
     const authModeLabel = document.querySelector('.auth-mode-label');
     const authModeToggle = document.querySelector('.auth-mode-toggle');
+    let isAuthenticated = false;
     let navigationToken = 0;
     let lastHeaderSelection = document.querySelector('header .tab.active') || null;
+    const nonDraggableElements = Array.from(document.querySelectorAll(
+        'header .tabs li, header .tab-link, .auth-trigger, footer .footer-tabs li, footer .footer-tabs a'
+    ));
+
+    nonDraggableElements.forEach(element => {
+        element.setAttribute('draggable', 'false');
+    });
 
     const authModeConfig = {
         login: {
-            title: 'Accedi a Trivit',
-            copy: 'Usa email e password per entrare nel tuo account.',
+            title: 'Log In to Trivit',
+            copy: 'Use your email and password to log in to your account.',
             submit: 'LOG IN',
-            switchLabel: 'Non hai un account?',
-            switchAction: 'Registrati'
+            switchLabel: 'Don\'t have an account?',
+            switchAction: 'Sign Up'
         },
         register: {
-            title: 'Registrati a Trivit',
-            copy: 'Crea il tuo account usando email e password.',
-            submit: 'REGISTRATI',
-            switchLabel: 'Hai gia un account?',
-            switchAction: 'Accedi'
+            title: 'Sign Up for Trivit',
+            copy: 'Create your account using your email and password.',
+            submit: 'SIGN UP',
+            switchLabel: 'Already have an account?',
+            switchAction: 'Log In'
         }
     };
 
@@ -101,6 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getCurrentAuthMode() {
         return authForm?.dataset.authMode === 'register' ? 'register' : 'login';
+    }
+
+    function syncAuthTriggerUi() {
+        if (!authTrigger) return;
+
+        authTrigger.disabled = isAuthenticated;
+        authTrigger.textContent = isAuthenticated ? 'You' : 'LOG IN';
+        authTrigger.setAttribute('aria-label', isAuthenticated ? 'You' : 'Log in');
     }
 
     function syncAuthModeUi(mode) {
@@ -406,7 +422,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.addEventListener('click', function(event) {
-        const link = event.target.closest('header a[href], footer a[href]');
+        const clickableFooterItem = event.target.closest('footer .footer-tabs li');
+        const link = event.target.closest('header a[href], footer a[href]') || clickableFooterItem?.querySelector('a[href]');
         if (!shouldHandleLink(link, event)) return;
 
         const url = new URL(link.href, window.location.href);
@@ -493,6 +510,15 @@ document.addEventListener('DOMContentLoaded', function() {
         closeAuthPanel();
     });
 
+    document.addEventListener('trivit:auth-state-change', event => {
+        isAuthenticated = Boolean(event.detail?.isAuthenticated);
+        syncAuthTriggerUi();
+
+        if (isAuthenticated && authPanel?.classList.contains('is-open')) {
+            closeAuthPanel();
+        }
+    });
+
     document.addEventListener('trivit:auth-mode-change', event => {
         syncAuthModeUi(event.detail?.mode);
     });
@@ -522,6 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     syncAuthModeUi(getCurrentAuthMode());
+    syncAuthTriggerUi();
     updateAuthPanelOffset();
 
     requestAnimationFrame(() => {
