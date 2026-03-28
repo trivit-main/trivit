@@ -15,6 +15,15 @@ const auth = getAuth(app);
 const requiresAuth = document.body?.dataset.requireAuth === 'true';
 const isLoginPage = document.body?.dataset.authPage === 'login';
 
+function broadcastAuthState(user) {
+    document.dispatchEvent(new CustomEvent('trivit:auth-state-change', {
+        detail: {
+            isAuthenticated: Boolean(user),
+            email: user?.email || ''
+        }
+    }));
+}
+
 function redirectToLogin() {
     if (window.location.pathname.endsWith('/login.html')) {
         return;
@@ -38,8 +47,10 @@ function redirectToLoginIfNeeded() {
 }
 
 onAuthStateChanged(auth, (user) => {
+    broadcastAuthState(user);
+
     if (user) {
-        console.log('Utente loggato:', user.email);
+        console.log('Logged in user:', user.email);
 
         if (isLoginPage) {
             redirectToHome();
@@ -48,7 +59,7 @@ onAuthStateChanged(auth, (user) => {
         return;
     }
 
-    console.log('Non loggato');
+    console.log('User not logged in');
     redirectToLoginIfNeeded();
 
     if (isLoginPage) {
@@ -71,13 +82,13 @@ function initializeAuth() {
     const modeConfig = {
         login: {
             submit: 'LOG IN',
-            loading: 'Accesso...',
-            success: 'Accesso effettuato'
+            loading: 'Logging in...',
+            success: 'Login successful'
         },
         register: {
-            submit: 'REGISTRATI',
-            loading: 'Registrazione...',
-            success: 'Registrazione completata'
+            submit: 'SIGN UP',
+            loading: 'Signing up...',
+            success: 'Registration completed'
         }
     };
 
@@ -106,19 +117,19 @@ function initializeAuth() {
             case 'auth/invalid-credential':
             case 'auth/wrong-password':
             case 'auth/user-not-found':
-                return 'Email o password non corretti.';
+                return 'Wrong email or password. Please try again.';
             case 'auth/email-already-in-use':
-                return 'Esiste gia un account con questa email.';
+                return 'An account with this email already exists.';
             case 'auth/invalid-email':
-                return 'Inserisci un indirizzo email valido.';
+                return 'Please enter a valid email address.';
             case 'auth/weak-password':
-                return 'La password deve contenere almeno 6 caratteri.';
+                return 'The password must be at least 6 characters long.';
             case 'auth/too-many-requests':
-                return 'Troppi tentativi. Riprova tra qualche minuto.';
+                return 'Too many attempts. Please try again in a few minutes.';
             case 'auth/network-request-failed':
-                return 'Connessione non disponibile. Controlla la rete e riprova.';
+                return 'Network connection unavailable. Please check your internet connection and try again.';
             default:
-                return 'Accesso non riuscito. Verifica i dati inseriti e riprova.';
+                return 'Login failed. Please verify your credentials and try again.';
         }
     }
 
@@ -130,13 +141,13 @@ function initializeAuth() {
         const currentMode = getCurrentMode();
 
         if (!email || !password) {
-            setFeedback('Compila email e password per continuare.', 'error');
+            setFeedback('Please fill in both email and password.', 'error');
             return;
         }
 
         setLoadingState(true);
         setFeedback(
-            currentMode === 'register' ? 'Creazione account in corso...' : 'Verifica credenziali in corso...',
+            currentMode === 'register' ? 'Creating account...' : 'Verifying credentials...',
             'pending'
         );
 
@@ -144,7 +155,7 @@ function initializeAuth() {
             const credential = currentMode === 'register'
                 ? await createUserWithEmailAndPassword(auth, email, password)
                 : await signInWithEmailAndPassword(auth, email, password);
-            const accountLabel = credential.user.email || 'account Trivit';
+            const accountLabel = credential.user.email || 'Trivit account';
             setFeedback(`${modeConfig[currentMode].success}: ${accountLabel}.`, 'success');
             form.reset();
             window.setTimeout(() => {
