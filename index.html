@@ -60,6 +60,19 @@
             </div>
         </form>
     </section>
+    <section class="account-panel" id="account-panel" aria-hidden="true" aria-labelledby="account-title" role="dialog" aria-modal="true">
+        <button class="account-close" type="button" aria-label="Close account menu">X</button>
+        <h2 id="account-title">hello</h2>
+        <p class="account-copy">Choose what you want to open next.</p>
+        <div class="account-menu-list">
+            <button class="account-menu-item" type="button">Profile</button>
+            <button class="account-menu-item" type="button">Saved Items</button>
+            <button class="account-menu-item" type="button">Downloads</button>
+            <button class="account-menu-item" type="button">Settings</button>
+            <button class="account-menu-item account-menu-logout" type="button">Log Out</button>
+        </div>
+        <p class="account-feedback" role="status" aria-live="polite"></p>
+    </section>
 
     <main class="page-main">
         <section class="page-placeholder" aria-labelledby="page-title">
