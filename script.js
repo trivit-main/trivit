@@ -13,9 +13,17 @@ document.addEventListener('DOMContentLoaded', function() {
             `);
         }
 
-        if (!document.querySelector('.auth-overlay') || !document.querySelector('.auth-panel')) {
+        if (!document.querySelector('.auth-overlay')) {
             header.insertAdjacentHTML('afterend', `
                 <div class="auth-overlay" aria-hidden="true"></div>
+            `);
+        }
+
+        if (!document.querySelector('.auth-panel')) {
+            const overlay = document.querySelector('.auth-overlay');
+            const authPanelAnchor = overlay || header;
+
+            authPanelAnchor.insertAdjacentHTML('afterend', `
                 <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
                     <button class="auth-close" type="button" aria-label="Close access panel">X</button>
                     <h2 id="auth-title">Log In to Trivit</h2>
@@ -36,6 +44,27 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="auth-mode-toggle" type="button">Sign Up</button>
                         </div>
                     </form>
+                </section>
+            `);
+        }
+
+        if (!document.querySelector('.account-panel')) {
+            const authPanel = document.querySelector('.auth-panel');
+            const accountPanelAnchor = authPanel || document.querySelector('.auth-overlay') || header;
+
+            accountPanelAnchor.insertAdjacentHTML('afterend', `
+                <section class="account-panel" id="account-panel" aria-hidden="true" aria-labelledby="account-title" role="dialog" aria-modal="true">
+                    <button class="account-close" type="button" aria-label="Close account menu">X</button>
+                    <h2 id="account-title">hello</h2>
+                    <p class="account-copy">Choose what you want to open next.</p>
+                    <div class="account-menu-list">
+                        <button class="account-menu-item" type="button">Profile</button>
+                        <button class="account-menu-item" type="button">Saved Items</button>
+                        <button class="account-menu-item" type="button">Downloads</button>
+                        <button class="account-menu-item" type="button">Settings</button>
+                        <button class="account-menu-item account-menu-logout" type="button">Log Out</button>
+                    </div>
+                    <p class="account-feedback" role="status" aria-live="polite"></p>
                 </section>
             `);
         }
@@ -67,15 +96,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = searchBar ? searchBar.querySelector('input') : null;
     const authTrigger = document.querySelector('.auth-trigger');
     const authPanel = document.querySelector('.auth-panel');
+    const accountPanel = document.querySelector('.account-panel');
     const authOverlay = document.querySelector('.auth-overlay');
     const authClose = document.querySelector('.auth-close');
+    const accountClose = document.querySelector('.account-close');
     const authForm = document.querySelector('#auth-login-form');
     const authTitle = document.querySelector('#auth-title');
     const authCopy = document.querySelector('.auth-copy');
     const authSubmit = document.querySelector('.auth-submit');
     const authModeLabel = document.querySelector('.auth-mode-label');
     const authModeToggle = document.querySelector('.auth-mode-toggle');
+    const accountFeedback = document.querySelector('.account-feedback');
+    const accountLogoutButton = document.querySelector('.account-menu-logout');
     let isAuthenticated = false;
+    let isLogoutPending = false;
     let navigationToken = 0;
     let lastHeaderSelection = document.querySelector('header .tab.active') || null;
     const nonDraggableElements = Array.from(document.querySelectorAll(
@@ -111,12 +145,54 @@ document.addEventListener('DOMContentLoaded', function() {
         return authForm?.dataset.authMode === 'register' ? 'register' : 'login';
     }
 
+    function isAuthPanelOpen() {
+        return Boolean(authPanel?.classList.contains('is-open'));
+    }
+
+    function isAccountPanelOpen() {
+        return Boolean(accountPanel?.classList.contains('is-open'));
+    }
+
+    function syncPanelOverlayState() {
+        const hasOpenPanel = isAuthPanelOpen() || isAccountPanelOpen();
+
+        if (authOverlay) {
+            authOverlay.classList.toggle('is-open', hasOpenPanel);
+            authOverlay.setAttribute('aria-hidden', hasOpenPanel ? 'false' : 'true');
+        }
+
+        if (authTrigger) {
+            authTrigger.setAttribute('aria-expanded', hasOpenPanel ? 'true' : 'false');
+        }
+
+        document.body.classList.toggle('auth-open', hasOpenPanel);
+    }
+
     function syncAuthTriggerUi() {
         if (!authTrigger) return;
 
-        authTrigger.disabled = isAuthenticated;
         authTrigger.textContent = isAuthenticated ? 'You' : 'LOG IN';
         authTrigger.setAttribute('aria-label', isAuthenticated ? 'You' : 'Log in');
+        authTrigger.setAttribute('aria-controls', isAuthenticated ? 'account-panel' : 'auth-panel');
+    }
+
+    function setAccountFeedback(message, state = '') {
+        if (!accountFeedback) return;
+
+        accountFeedback.textContent = message;
+        if (state) {
+            accountFeedback.dataset.state = state;
+        } else {
+            delete accountFeedback.dataset.state;
+        }
+    }
+
+    function setLogoutButtonState(isPending) {
+        if (!accountLogoutButton) return;
+
+        isLogoutPending = isPending;
+        accountLogoutButton.disabled = isPending;
+        accountLogoutButton.textContent = isPending ? 'Logging Out...' : 'Log Out';
     }
 
     function syncAuthModeUi(mode) {
@@ -241,14 +317,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function openAuthPanel() {
-        if (!authPanel || !authOverlay || !authTrigger) return;
+        if (!authPanel || !authTrigger) return;
+
+        if (isAccountPanelOpen()) {
+            closeAccountPanel({ restoreSelection: false });
+        }
 
         authPanel.classList.add('is-open');
         authPanel.setAttribute('aria-hidden', 'false');
-        authOverlay.classList.add('is-open');
-        authOverlay.setAttribute('aria-hidden', 'false');
-        authTrigger.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('auth-open');
+        syncPanelOverlayState();
         syncAuthModeUi('login');
         document.dispatchEvent(new CustomEvent('trivit:auth-panel-open'));
     }
@@ -256,14 +333,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeAuthPanel(options = {}) {
         const { restoreSelection = true } = options;
 
-        if (!authPanel || !authOverlay || !authTrigger) return;
+        if (!authPanel || !authTrigger) return;
 
         authPanel.classList.remove('is-open');
         authPanel.setAttribute('aria-hidden', 'true');
-        authOverlay.classList.remove('is-open');
-        authOverlay.setAttribute('aria-hidden', 'true');
-        authTrigger.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('auth-open');
+        syncPanelOverlayState();
         document.dispatchEvent(new CustomEvent('trivit:auth-panel-close'));
 
         if (!restoreSelection) {
@@ -276,6 +350,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         clearHeaderState();
+    }
+
+    function openAccountPanel() {
+        if (!accountPanel || !authTrigger || !isAuthenticated) return;
+
+        if (isAuthPanelOpen()) {
+            closeAuthPanel({ restoreSelection: false });
+        }
+
+        setAccountFeedback('');
+        setLogoutButtonState(false);
+        accountPanel.classList.add('is-open');
+        accountPanel.setAttribute('aria-hidden', 'false');
+        syncPanelOverlayState();
+        document.dispatchEvent(new CustomEvent('trivit:account-panel-open'));
+    }
+
+    function closeAccountPanel(options = {}) {
+        const { restoreSelection = true } = options;
+
+        if (!accountPanel || !authTrigger) return;
+
+        accountPanel.classList.remove('is-open');
+        accountPanel.setAttribute('aria-hidden', 'true');
+        setLogoutButtonState(false);
+        setAccountFeedback('');
+        syncPanelOverlayState();
+        document.dispatchEvent(new CustomEvent('trivit:account-panel-close'));
+
+        if (!restoreSelection) {
+            return;
+        }
+
+        if (lastHeaderSelection && document.contains(lastHeaderSelection)) {
+            setActive(lastHeaderSelection);
+            return;
+        }
+
+        clearHeaderState();
+    }
+
+    function closeOpenPanels(options = {}) {
+        const { restoreSelection = true } = options;
+
+        if (isAuthPanelOpen()) {
+            closeAuthPanel({ restoreSelection });
+            return;
+        }
+
+        if (isAccountPanelOpen()) {
+            closeAccountPanel({ restoreSelection });
+        }
     }
 
     function syncLinkAttributes(currentLinks, nextLinks) {
@@ -434,8 +560,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setActive(clickedTab);
         }
 
-        if (authPanel && authPanel.classList.contains('is-open')) {
-            closeAuthPanel({ restoreSelection: false });
+        if (isAuthPanelOpen() || isAccountPanelOpen()) {
+            closeOpenPanels({ restoreSelection: false });
         }
 
         if (searchInput && document.activeElement === searchInput) {
@@ -453,21 +579,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (searchInput) {
         searchBar.addEventListener('pointerdown', () => {
-            closeAuthPanel({ restoreSelection: false });
+            closeOpenPanels({ restoreSelection: false });
             setActive(searchBar);
         });
 
         searchInput.addEventListener('focus', () => {
-            closeAuthPanel({ restoreSelection: false });
+            closeOpenPanels({ restoreSelection: false });
             setActive(searchBar);
         });
     }
 
     if (authTrigger) {
         authTrigger.addEventListener('click', () => {
-            const isOpen = authPanel?.classList.contains('is-open');
+            if (isAuthenticated) {
+                if (isAccountPanelOpen()) {
+                    closeAccountPanel();
+                    return;
+                }
 
-            if (isOpen) {
+                setActive(authTrigger);
+                updateAuthPanelOffset();
+                openAccountPanel();
+                return;
+            }
+
+            if (isAuthPanelOpen()) {
                 closeAuthPanel();
                 return;
             }
@@ -494,15 +630,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    if (accountClose) {
+        accountClose.addEventListener('click', () => {
+            closeAccountPanel();
+        });
+    }
+
     if (authOverlay) {
         authOverlay.addEventListener('click', () => {
-            closeAuthPanel();
+            closeOpenPanels();
         });
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && authPanel?.classList.contains('is-open')) {
-            closeAuthPanel();
+        if (event.key === 'Escape' && (isAuthPanelOpen() || isAccountPanelOpen())) {
+            closeOpenPanels();
         }
     });
 
@@ -514,8 +656,12 @@ document.addEventListener('DOMContentLoaded', function() {
         isAuthenticated = Boolean(event.detail?.isAuthenticated);
         syncAuthTriggerUi();
 
-        if (isAuthenticated && authPanel?.classList.contains('is-open')) {
+        if (isAuthenticated && isAuthPanelOpen()) {
             closeAuthPanel();
+        }
+
+        if (!isAuthenticated && isAccountPanelOpen()) {
+            closeAccountPanel();
         }
     });
 
@@ -524,7 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('trivit:request-auth-panel-open', () => {
-        if (authPanel?.classList.contains('is-open')) {
+        if (isAuthPanelOpen()) {
             return;
         }
 
@@ -540,6 +686,23 @@ document.addEventListener('DOMContentLoaded', function() {
         closeAuthPanel();
     });
 
+    if (accountLogoutButton) {
+        accountLogoutButton.addEventListener('click', () => {
+            if (isLogoutPending) {
+                return;
+            }
+
+            setLogoutButtonState(true);
+            setAccountFeedback('Signing out...', 'pending');
+            document.dispatchEvent(new CustomEvent('trivit:auth-logout-request'));
+        });
+    }
+
+    document.addEventListener('trivit:auth-logout-error', event => {
+        setLogoutButtonState(false);
+        setAccountFeedback(event.detail?.message || 'Logout failed. Please try again.', 'error');
+    });
+
     const initialActive = getCurrentActiveHeaderItem();
     if (initialActive) {
         updateSelector(initialActive);
@@ -549,6 +712,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     syncAuthModeUi(getCurrentAuthMode());
     syncAuthTriggerUi();
+    syncPanelOverlayState();
+    setLogoutButtonState(false);
+    setAccountFeedback('');
     updateAuthPanelOffset();
 
     requestAnimationFrame(() => {
