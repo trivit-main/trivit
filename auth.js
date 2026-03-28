@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDebBs-95p35770rYjszyP2sFekOxAr4cg",
@@ -64,6 +64,19 @@ onAuthStateChanged(auth, (user) => {
 
     if (isLoginPage) {
         document.dispatchEvent(new CustomEvent('trivit:request-auth-panel-open'));
+    }
+});
+
+document.addEventListener('trivit:auth-logout-request', async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error('Logout failed:', error);
+        document.dispatchEvent(new CustomEvent('trivit:auth-logout-error', {
+            detail: {
+                message: 'Logout failed. Please try again.'
+            }
+        }));
     }
 });
 
