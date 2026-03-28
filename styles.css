@@ -70,6 +70,16 @@ header {
     text-decoration: none;
 }
 
+.tabs li,
+.tab-link,
+.auth-trigger,
+.footer-tabs li,
+.footer-tabs a {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
 /* Hover feedback is handled by the separate `.tab-hover` element instead of a per-tab pseudo-element. */
 
 /* Active tab text changes color so it stays visible on the dark selector background. */
@@ -123,6 +133,8 @@ header {
     outline: 4px;
     box-shadow: none;
     color: inherit;
+    font: inherit;
+    letter-spacing: 0.08em;
     text-align: center;
     text-transform: uppercase;
     height: 35px;
@@ -168,6 +180,11 @@ header {
 
 .auth-trigger.active {
     color: #cbcbcb;
+}
+
+.auth-trigger:disabled {
+    opacity: 1;
+    cursor: default;
 }
 
 /* Hover outline shown at header level: matches the selector shape, but only draws a border. */
@@ -420,7 +437,13 @@ footer {
     gap: 28px;
 }
 
+.footer-tabs li {
+    cursor: pointer;
+}
+
 .footer-tabs a {
+    display: block;
+    padding: 8px 12px;
     color: #494949;
     text-decoration: none;
     font-size: 0.95rem;
