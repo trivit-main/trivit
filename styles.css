@@ -281,8 +281,12 @@ main {
     box-shadow: 0 24px 48px rgba(73, 73, 73, 0.18);
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-12px);
-    transition: opacity 0.2s ease, transform 0.24s cubic-bezier(.2,.9,.2,1);
+    --panel-origin-x: calc(100% - 54px);
+    --panel-origin-y: -18px;
+    transform-origin: var(--panel-origin-x) var(--panel-origin-y);
+    transform: scale(0.18);
+    transition: opacity 0.16s ease-in, transform 0.2s cubic-bezier(.55,.06,.68,.19);
+    will-change: opacity, transform;
     z-index: 11;
 }
 
@@ -290,7 +294,8 @@ main {
 .account-panel.is-open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: scale(1);
+    transition: opacity 0.22s ease-out, transform 0.28s cubic-bezier(.16,.84,.28,1);
 }
 
 .auth-close,
