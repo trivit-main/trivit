@@ -26,23 +26,23 @@ document.addEventListener('DOMContentLoaded', function() {
             authPanelAnchor.insertAdjacentHTML('afterend', `
                 <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
                     <button class="auth-close" type="button" aria-label="Close access panel"></button>
-                    <h2 id="auth-title">Log In to Trivit</h2>
-                    <p class="auth-copy">Use email and password to log in or create your account.</p>
+                    <h2 id="auth-title">login to trivit</h2>
                     <form class="auth-form" id="auth-login-form" data-auth-mode="login">
                         <label class="auth-field" for="auth-email">
-                            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder=" " required>
-                            <span>Email</span>
+                            <span class="auth-field-label">email</span>
+                            <input id="auth-email" name="email" type="email" autocomplete="email" required>
                         </label>
                         <label class="auth-field" for="auth-password">
-                            <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder=" " required>
-                            <span>Password</span>
+                            <span class="auth-field-label">password</span>
+                            <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
                         </label>
+                        <div class="auth-divider" aria-hidden="true"></div>
                         <button class="auth-submit" type="submit">LOG IN</button>
-                        <p class="auth-feedback" role="status" aria-live="polite"></p>
                         <div class="auth-mode-switch">
-                            <span class="auth-mode-label">Don't have an account?</span>
-                            <button class="auth-mode-toggle" type="button">Sign Up</button>
+                            <span class="auth-mode-label">DON'T HAVE AN ACCOUNT?</span>
+                            <button class="auth-mode-toggle" type="button">SIGN IN</button>
                         </div>
+                        <p class="auth-feedback" role="status" aria-live="polite"></p>
                     </form>
                 </section>
             `);
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             accountPanelAnchor.insertAdjacentHTML('afterend', `
                 <section class="account-panel" id="account-panel" aria-hidden="true" aria-labelledby="account-title" role="dialog" aria-modal="true">
-                    <button class="account-close" type="button" aria-label="Close account menu">X</button>
+                    <button class="account-close" type="button" aria-label="Close account menu"></button>
                     <h2 id="account-title">hello</h2>
                     <p class="account-copy">Choose what you want to open next.</p>
                     <div class="account-menu-list">
@@ -122,18 +122,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const authModeConfig = {
         login: {
-            title: 'Log In to Trivit',
-            copy: 'Use your email and password to log in to your account.',
+            title: 'login to trivit',
             submit: 'LOG IN',
-            switchLabel: 'Don\'t have an account?',
-            switchAction: 'Sign Up'
+            switchLabel: 'DON\'T HAVE AN ACCOUNT?',
+            switchAction: 'SIGN IN'
         },
         register: {
-            title: 'Sign Up for Trivit',
-            copy: 'Create your account using your email and password.',
-            submit: 'SIGN UP',
-            switchLabel: 'Already have an account?',
-            switchAction: 'Log In'
+            title: 'sign in to trivit',
+            submit: 'SIGN IN',
+            switchLabel: 'ALREADY HAVE AN ACCOUNT?',
+            switchAction: 'LOG IN'
         }
     };
 
