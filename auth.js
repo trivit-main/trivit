@@ -99,9 +99,9 @@ function initializeAuth() {
             success: 'Login successful'
         },
         register: {
-            submit: 'SIGN UP',
-            loading: 'Signing up...',
-            success: 'Registration completed'
+            submit: 'SIGN IN',
+            loading: 'Creating account...',
+            success: 'Account created'
         }
     };
 
