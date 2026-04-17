@@ -25,17 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             authPanelAnchor.insertAdjacentHTML('afterend', `
                 <section class="auth-panel" id="auth-panel" aria-hidden="true" aria-labelledby="auth-title" role="dialog" aria-modal="true">
-                    <button class="auth-close" type="button" aria-label="Close access panel">X</button>
+                    <button class="auth-close" type="button" aria-label="Close access panel"></button>
                     <h2 id="auth-title">Log In to Trivit</h2>
                     <p class="auth-copy">Use email and password to log in or create your account.</p>
                     <form class="auth-form" id="auth-login-form" data-auth-mode="login">
                         <label class="auth-field" for="auth-email">
+                            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder=" " required>
                             <span>Email</span>
-                            <input id="auth-email" name="email" type="email" autocomplete="email" required>
                         </label>
                         <label class="auth-field" for="auth-password">
+                            <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder=" " required>
                             <span>Password</span>
-                            <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
                         </label>
                         <button class="auth-submit" type="submit">LOG IN</button>
                         <p class="auth-feedback" role="status" aria-live="polite"></p>
