@@ -76,6 +76,7 @@ header {
     margin: 0;
     padding: 0;
     display: flex;
+    gap: 12px;
 }
 
 /* Base style for each tab: spacing, text color, click cursor, and stacking above the moving background. */
@@ -84,7 +85,9 @@ header {
     cursor: pointer;
     position: relative;
     background-color: transparent;
-    transition: color 0.18s;
+    border: 1px solid #494949;
+    border-radius: 12px;
+    transition: color 0.18s ease;
     z-index: 1; /* keep text above selector */
 }
 
@@ -317,6 +320,13 @@ main {
     cursor: pointer;
 }
 
+.auth-close {
+    background-image: url("Trivit Close Icon Light.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+}
+
 .auth-kicker {
     margin: 0 0 10px;
     font-size: 0.72rem;
@@ -344,24 +354,66 @@ main {
 
 .auth-form {
     display: grid;
-    gap: 14px;
+    gap: 12px;
 }
 
 .auth-field {
-    display: grid;
-    gap: 8px;
+    --auth-field-top-offset: 10px;
+    --auth-field-height: 52px;
+    position: relative;
+    display: block;
+    padding-top: var(--auth-field-top-offset);
     font-size: 0.88rem;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .auth-field input {
-    padding: 12px 14px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--auth-field-height);
+    padding: 18px 14px 8px;
     border: 1px solid #494949;
     border-radius: 14px;
     background: #f1f1f1;
     color: inherit;
     font: inherit;
+}
+
+.auth-field input::placeholder {
+    color: transparent;
+}
+
+.auth-field span {
+    position: absolute;
+    top: calc(var(--auth-field-top-offset) + (var(--auth-field-height) / 2));
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 14px;
+    border: 1px solid #494949;
+    border-radius: 12px;
+    background: #f1f1f1;
+    color: #494949;
+    line-height: 1;
+    font-size: 0.92rem;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    transition: top 0.24s cubic-bezier(.2,.9,.2,1), transform 0.24s cubic-bezier(.2,.9,.2,1), background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-field:focus-within span,
+.auth-field input:not(:placeholder-shown) + span,
+.auth-field input:-webkit-autofill + span {
+    top: var(--auth-field-top-offset);
+    background: #e3e3e3;
+    border-color: #494949;
+    box-shadow: 0 0 0 4px #e3e3e3;
+    color: #494949;
+    transform: translate(-50%, -50%);
 }
 
 .auth-field input:focus {
@@ -370,7 +422,8 @@ main {
 }
 
 .auth-submit {
-    min-height: 44px;
+    min-height: 54px;
+    margin-top: 6px;
     border: 0;
     border-radius: 14px;
     background: #494949;
@@ -397,30 +450,38 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
     font-size: 0.92rem;
 }
 
 .auth-mode-label {
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     opacity: 0.75;
 }
 
 .auth-mode-toggle {
-    padding: 0;
-    border: 0;
+    min-height: 35px;
+    padding: 0 18px;
+    border: 1px solid #494949;
+    border-radius: 12px;
     background: transparent;
     color: inherit;
     font: inherit;
     font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
 }
 
 .auth-mode-toggle:hover,
 .auth-mode-toggle:focus-visible {
-    opacity: 0.72;
+    background: #494949;
+    color: #cbcbcb;
+    opacity: 1;
 }
 
 .auth-mode-toggle:disabled {
