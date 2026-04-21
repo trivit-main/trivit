@@ -291,9 +291,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!activeEl || !selector || !header) return;
 
         const headerRect = header.getBoundingClientRect();
+        const activeRect = activeEl.getBoundingClientRect();
+        const top = activeRect.top - headerRect.top;
+        const height = activeRect.height;
+
+        selector.style.top = `${top}px`;
+        selector.style.height = `${height}px`;
 
         if (activeEl === searchBar && searchInput) {
-            const activeRect = activeEl.getBoundingClientRect();
             const targetWidth = getSearchTargetWidth();
             const left = activeRect.right - headerRect.left - targetWidth;
             selector.style.transform = `translateX(${left}px)`;
@@ -302,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const activeRect = activeEl.getBoundingClientRect();
         const left = activeRect.left - headerRect.left;
         selector.style.transform = `translateX(${left}px)`;
         selector.style.width = `${activeRect.width}px`;
