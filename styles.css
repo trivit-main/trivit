@@ -1,5 +1,7 @@
 :root {
     --trivit-font-family: Arial, sans-serif;
+    --trivit-shell-gap: 12px;
+    --trivit-shell-radius: 18px;
 }
 
 /* Page-wide defaults: removes browser spacing, sets the base font, and applies the gray background. */
@@ -13,6 +15,8 @@ body {
     font-size: 16px;
     background-color: #cbcbcb;
     color: #494949;
+    box-sizing: border-box;
+    padding: var(--trivit-shell-gap);
 }
 
 button,
@@ -44,7 +48,8 @@ header {
     background-color: #cbcbcb;
     padding: 5px 28px;
     position: relative;
-    border-bottom: 1px solid #494949;
+    border: 1px solid #494949;
+    border-radius: var(--trivit-shell-radius);
 }
 
 /* Left section of the header: keeps the logo and tabs aligned in one row. */
@@ -56,13 +61,20 @@ header {
 }
 
 /* Controls the logo size and spacing from the navigation tabs. */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
 .logo img {
+    display: block;
     height: 50px;
     margin-right: 16px;
 }
 
 .logo a {
     display: inline-flex;
+    align-items: center;
 }
 
 /* Tab container: used as the positioning context for the tab highlight elements. */
@@ -136,9 +148,9 @@ header {
 /* Animated dark background that slides behind the currently selected tab. */
 .tab-selector {
     position: absolute;
-    top: 14px;
+    top: 0;
     left: 0;
-    height: calc(100% - 28px);
+    height: 0;
     background-color: #494949;
     border-radius: 12px;
     opacity: 0;
@@ -147,7 +159,7 @@ header {
 }
 
 .tab-selector.is-ready {
-    transition: transform 0.28s cubic-bezier(.2,.9,.2,1), width 0.28s cubic-bezier(.2,.9,.2,1), opacity 0.18s ease;
+    transition: transform 0.28s cubic-bezier(.2,.9,.2,1), width 0.28s cubic-bezier(.2,.9,.2,1), top 0.28s cubic-bezier(.2,.9,.2,1), height 0.28s cubic-bezier(.2,.9,.2,1), opacity 0.18s ease;
 }
 
 .tab-selector.is-visible {
@@ -589,8 +601,44 @@ body.auth-open {
     opacity: 0.75;
 }
 
+.game-download-hero {
+    display: grid;
+    justify-items: center;
+    gap: 24px;
+}
+
+.game-download-label {
+    margin: 0;
+    font-size: clamp(3rem, 9vw, 5.75rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 0.98;
+}
+
+.game-download-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid #494949;
+    border-radius: 12px;
+    background: #494949;
+    color: #cbcbcb;
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: opacity 0.18s ease;
+}
+
+.game-download-button:hover,
+.game-download-button:focus-visible {
+    opacity: 0.86;
+}
+
 footer {
-    border-top: 1px solid #494949;
+    border: 1px solid #494949;
+    border-radius: var(--trivit-shell-radius);
     padding: 18px 28px 22px;
 }
 
