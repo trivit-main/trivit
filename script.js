@@ -295,12 +295,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function getHeaderContentOffset() {
+        if (!header) {
+            return { left: 0, top: 0 };
+        }
+
+        // Absolute children are positioned from the header's inner box, not its outer border box.
+        return {
+            left: header.clientLeft,
+            top: header.clientTop
+        };
+    }
+
     function updateSelector(activeEl) {
         if (!activeEl || !selector || !header) return;
 
         const headerRect = header.getBoundingClientRect();
         const activeRect = activeEl.getBoundingClientRect();
-        const top = activeRect.top - headerRect.top;
+        const headerOffset = getHeaderContentOffset();
+        const top = activeRect.top - headerRect.top - headerOffset.top;
         const height = activeRect.height;
 
         selector.style.top = `${top}px`;
@@ -308,14 +321,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (activeEl === searchBar && searchInput) {
             const targetWidth = getSearchTargetWidth();
-            const left = activeRect.right - headerRect.left - targetWidth;
+            const left = activeRect.right - headerRect.left - headerOffset.left - targetWidth;
             selector.style.transform = `translateX(${left}px)`;
             selector.style.width = `${targetWidth}px`;
             showSelector();
             return;
         }
 
-        const left = activeRect.left - headerRect.left;
+        const left = activeRect.left - headerRect.left - headerOffset.left;
         selector.style.transform = `translateX(${left}px)`;
         selector.style.width = `${activeRect.width}px`;
         showSelector();
@@ -572,7 +585,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const rect = target.getBoundingClientRect();
         const headerRect = header.getBoundingClientRect();
-        const left = rect.left - headerRect.left;
+        const headerOffset = getHeaderContentOffset();
+        const left = rect.left - headerRect.left - headerOffset.left;
         hoverEl.style.width = `${rect.width}px`;
         hoverEl.style.transform = `translateX(${left}px)`;
         hoverEl.style.opacity = '1';
