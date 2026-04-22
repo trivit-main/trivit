@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { createUserWithEmailAndPassword, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDebBs-95p35770rYjszyP2sFekOxAr4cg",
@@ -12,8 +12,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 const requiresAuth = document.body?.dataset.requireAuth === 'true';
 const isLoginPage = document.body?.dataset.authPage === 'login';
+
+googleProvider.setCustomParameters({
+    prompt: 'select_account'
+});
 
 function broadcastAuthState(user) {
     document.dispatchEvent(new CustomEvent('trivit:auth-state-change', {
@@ -85,6 +90,7 @@ function initializeAuth() {
     const emailInput = document.querySelector('#auth-email');
     const passwordInput = document.querySelector('#auth-password');
     const submitButton = document.querySelector('.auth-submit');
+    const googleButton = document.querySelector('.auth-google-button');
     const modeToggle = document.querySelector('.auth-mode-toggle');
     const feedback = document.querySelector('.auth-feedback');
 
@@ -96,12 +102,18 @@ function initializeAuth() {
         login: {
             submit: 'LOG IN',
             loading: 'Logging in...',
-            success: 'Login successful'
+            google: 'LOG IN WITH GOOGLE',
+            googleLoading: 'Opening Google...',
+            success: 'Login successful',
+            googleSuccess: 'Google sign-in successful'
         },
         register: {
             submit: 'SIGN IN',
             loading: 'Creating account...',
-            success: 'Account created'
+            google: 'SIGN IN WITH GOOGLE',
+            googleLoading: 'Opening Google...',
+            success: 'Account created',
+            googleSuccess: 'Google sign-in successful'
         }
     };
 
@@ -118,11 +130,24 @@ function initializeAuth() {
         }
     }
 
-    function setLoadingState(isLoading) {
+    function setLoadingState(action = '') {
         const currentMode = getCurrentMode();
+        const isLoading = Boolean(action);
+
+        emailInput.disabled = isLoading;
+        passwordInput.disabled = isLoading;
         submitButton.disabled = isLoading;
         modeToggle.disabled = isLoading;
-        submitButton.textContent = isLoading ? modeConfig[currentMode].loading : modeConfig[currentMode].submit;
+        submitButton.textContent = action === 'email'
+            ? modeConfig[currentMode].loading
+            : modeConfig[currentMode].submit;
+
+        if (googleButton) {
+            googleButton.disabled = isLoading;
+            googleButton.textContent = action === 'google'
+                ? modeConfig[currentMode].googleLoading
+                : modeConfig[currentMode].google;
+        }
     }
 
     function getErrorMessage(errorCode) {
@@ -141,8 +166,20 @@ function initializeAuth() {
                 return 'Too many attempts. Please try again in a few minutes.';
             case 'auth/network-request-failed':
                 return 'Network connection unavailable. Please check your internet connection and try again.';
+            case 'auth/popup-blocked':
+                return 'The Google popup was blocked. Please allow popups and try again.';
+            case 'auth/popup-closed-by-user':
+                return 'Google sign-in was cancelled before completion.';
+            case 'auth/cancelled-popup-request':
+                return 'Another Google sign-in request is already in progress.';
+            case 'auth/account-exists-with-different-credential':
+                return 'This email already exists with a different sign-in method.';
+            case 'auth/operation-not-allowed':
+                return 'Google sign-in is not enabled in Firebase Authentication yet.';
+            case 'auth/unauthorized-domain':
+                return 'This domain is not authorized for Google sign-in in Firebase.';
             default:
-                return 'Login failed. Please verify your credentials and try again.';
+                return 'Authentication failed. Please try again.';
         }
     }
 
@@ -158,7 +195,7 @@ function initializeAuth() {
             return;
         }
 
-        setLoadingState(true);
+        setLoadingState('email');
         setFeedback(
             currentMode === 'register' ? 'Creating account...' : 'Verifying credentials...',
             'pending'
@@ -179,9 +216,34 @@ function initializeAuth() {
         } catch (error) {
             setFeedback(getErrorMessage(error.code), 'error');
         } finally {
-            setLoadingState(false);
+            setLoadingState();
         }
     });
+
+    if (googleButton) {
+        googleButton.addEventListener('click', async () => {
+            const currentMode = getCurrentMode();
+
+            setLoadingState('google');
+            setFeedback('Opening Google account chooser...', 'pending');
+
+            try {
+                const credential = await signInWithPopup(auth, googleProvider);
+                const accountLabel = credential.user.displayName || credential.user.email || 'Google account';
+                setFeedback(`${modeConfig[currentMode].googleSuccess}: ${accountLabel}.`, 'success');
+                form.reset();
+                window.setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('trivit:auth-login-success', {
+                        detail: { email: credential.user.email || '' }
+                    }));
+                }, 450);
+            } catch (error) {
+                setFeedback(getErrorMessage(error.code), 'error');
+            } finally {
+                setLoadingState();
+            }
+        });
+    }
 
     document.addEventListener('trivit:auth-panel-open', () => {
         setFeedback('');
