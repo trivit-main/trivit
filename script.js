@@ -36,8 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="auth-field-label">password</span>
                             <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
                         </label>
-                        <div class="auth-divider" aria-hidden="true"></div>
                         <button class="auth-submit" type="submit">LOG IN</button>
+                        <div class="auth-provider-separator" aria-hidden="true">or</div>
+                        <button class="auth-google-button" type="button">LOG IN WITH GOOGLE</button>
                         <div class="auth-mode-switch">
                             <span class="auth-mode-label">DON'T HAVE AN ACCOUNT?</span>
                             <button class="auth-mode-toggle" type="button">SIGN IN</button>
@@ -104,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const authTitle = document.querySelector('#auth-title');
     const authCopy = document.querySelector('.auth-copy');
     const authSubmit = document.querySelector('.auth-submit');
+    const authGoogleButton = document.querySelector('.auth-google-button');
     const authModeLabel = document.querySelector('.auth-mode-label');
     const authModeToggle = document.querySelector('.auth-mode-toggle');
     const accountFeedback = document.querySelector('.account-feedback');
@@ -124,12 +126,14 @@ document.addEventListener('DOMContentLoaded', function() {
         login: {
             title: 'login to trivit',
             submit: 'LOG IN',
+            google: 'LOG IN WITH GOOGLE',
             switchLabel: 'DON\'T HAVE AN ACCOUNT?',
             switchAction: 'SIGN IN'
         },
         register: {
             title: 'sign in to trivit',
             submit: 'SIGN IN',
+            google: 'SIGN IN WITH GOOGLE',
             switchLabel: 'ALREADY HAVE AN ACCOUNT?',
             switchAction: 'LOG IN'
         }
@@ -214,6 +218,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (authSubmit && !authSubmit.disabled) {
             authSubmit.textContent = authModeConfig[nextMode].submit;
+        }
+
+        if (authGoogleButton && !authGoogleButton.disabled) {
+            authGoogleButton.textContent = authModeConfig[nextMode].google;
         }
 
         if (authModeLabel) {
