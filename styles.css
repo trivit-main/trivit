@@ -2,6 +2,7 @@
     --trivit-font-family: Arial, sans-serif;
     --trivit-shell-gap: 12px;
     --trivit-shell-radius: 18px;
+    --trivit-header-inline-spacing: 12px;
 }
 
 /* Page-wide defaults: removes browser spacing, sets the base font, and applies the gray background. */
@@ -46,7 +47,7 @@ header {
     align-items: center;
     gap: 24px;
     background-color: #cbcbcb;
-    padding: 5px 12px 5px 28px;
+    padding: 5px var(--trivit-header-inline-spacing);
     position: relative;
     border: 1px solid #494949;
     border-radius: var(--trivit-shell-radius);
@@ -56,7 +57,7 @@ header {
 .left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--trivit-header-inline-spacing);
     min-width: 0;
 }
 
@@ -69,7 +70,7 @@ header {
 .logo img {
     display: block;
     height: 50px;
-    margin-right: 16px;
+    margin-right: 0;
 }
 
 .logo a {
@@ -88,7 +89,7 @@ header {
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 12px;
+    gap: var(--trivit-header-inline-spacing);
 }
 
 /* Base style for each tab: spacing, text color, click cursor, and stacking above the moving background. */
@@ -171,7 +172,7 @@ header {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 12px;
+    gap: var(--trivit-header-inline-spacing);
     flex-shrink: 0;
 }
 
