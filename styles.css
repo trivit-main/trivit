@@ -350,7 +350,7 @@ main {
     margin: 2px 56px 18px;
     font-family: inherit;
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: 0.08em;
     line-height: 1.2;
     text-align: center;
@@ -500,7 +500,7 @@ main {
     justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: -2px;
+    margin-top: 6px;
 }
 
 .auth-mode-label {
@@ -647,7 +647,19 @@ body.auth-open {
 .game-download-hero {
     display: grid;
     justify-items: center;
-    gap: 24px;
+    gap: 34px;
+}
+
+.game-download-copy {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+}
+
+.game-download-logo {
+    display: block;
+    width: min(180px, 42vw);
+    height: auto;
 }
 
 .game-download-label {
